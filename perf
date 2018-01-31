@@ -1,0 +1,10 @@
+#!/bin/bash
+
+TESTSET=`date +%Y%m%d%H%M%S`
+CLIENTS=2
+TESTCASE=$1
+
+for (( i=1; i<=$CLIENTS; i++ ))
+do
+   curl "bam-perf-c$i:8000/?testcase=$TESTCASE&time=2&testset=$TESTSET&dutsize=A1"
+done

@@ -1,0 +1,25 @@
+TESTTIME=20
+CLIENTCNT=2
+
+curl "bam-perf-c1:8000/?testcase=Direct_TCP1&time=8&testset=201701129998&dutsize=A1"
+sleep 10
+curl "bam-perf-c1:8000/?testcase=DirectRev_TCP1&time=8&testset=201701129998&dutsize=A1"
+sleep 10
+curl "bam-perf-c1:8000/?testcase=Direct_UDP&time=8&testset=201701129998&dutsize=A1"
+sleep 10
+curl "bam-perf-c1:8000/?testcase=DirectRev_UDP&time=8&testset=201701129998&dutsize=A1"
+sleep 11
+curl "bam-perf-c1:8000/?testcase=FW_TCP1&time=$TESTTIME&testset=201701129998&dutsize=A1"
+sleep $TESTTIME
+sleep 3
+curl "bam-perf-c1:8000/?testcase=FWRev_TCP1&time=$TESTTIME&testset=201701129998&dutsize=A1"
+sleep $TESTTIME
+sleep 3
+curl "bam-perf-c1:8000/?testcase=FW_UDP&time=$TESTTIME&testset=201701129998&dutsize=A1"
+sleep $TESTTIME
+sleep 3
+curl "bam-perf-c1:8000/?testcase=FWRev_UDP&time=$TESTTIME&testset=201701129998&dutsize=A1"
+sleep $TESTTIME
+sleep 3
+
+

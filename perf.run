@@ -1,0 +1,19 @@
+#!/bin/bash
+
+TESTSET=`date +%Y%m%d%H%M%S`
+CLIENTS=2
+TESTTIME=40
+COOLTIME=10
+DUTSIZE=`azure vm show bam-perf bam-perf-dut | grep Size | cut -d ":" -f 3 | cut -d "_" -f 2-`
+
+for TESTCASE in `cat testsuites2`
+do
+	echo $TESTCASE
+	for (( i=1; i<=$CLIENTS; i++ ))
+	do
+	   curl "bam-perf-c$i:8000/?testcase=$TESTCASE&time=$TESTTIME&testset=$TESTSET&dutsize=$DUTSIZE"
+	done
+	sleep $TESTTIME
+	sleep $COOLTIME
+done
+

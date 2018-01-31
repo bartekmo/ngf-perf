@@ -1,0 +1,198 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "0.0.1",
+  "parameters": {
+      "prefix": {
+         "type": "string",
+         "defaultValue": "bam-ptest1"
+      }
+
+  },
+  "variables": {
+      "subnetSpaceFw": "10.3.255.0/24",
+      "subnetSpaceClients": "10.3.0.0/24",
+      "subnetSpaceSink": "10.3.1.0/24",
+      "subnetMapClients": "10.5.0.0/16",
+      "subnetMapSink": "10.6.0.0/16",
+      "vmSize": "Standard_F2s_v2",
+      "adminUserName": "bam",
+      "adminPublicKey": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAoyx4Ws2NMtwxRd6EgbtLJnE36cjI9MuOV9Z2wzZXp6DphX/c3qMx2NVTMz5/08ky30Q0TpmKyFYHYjy59b9MofDLaosnB9u9DOEDEApjCiQruWf/Us6yuM+We1SoIOo2DrnTfCjdBoiHtSEv3Vqs8flY7TyyGlAnmk6nN6MpWhR0JguXHZT/Q/B0EhtDDfXxjjmYai/mqTzVaWGTbN+5Mkom45IjmvGsPHqWkmp+6YDAaNZeuRwa2o+oB1TCMCE0oM+B5CLxOU/buDcLM98sqHRcvqSvcPLqfGYkRBfBFKG5U6Xfifk9FBWdZHJpULIa9Q1Tn60WeKAaxiaBdUxPLw==",
+      "dutIp": "10.3.255.254"
+
+  },
+  "resources": [
+      {
+         "name": "[concat( parameters( 'prefix' ), '-vnet' )]",
+         "apiVersion": "2017-10-01",
+         "type": "Microsoft.Network/virtualNetworks",
+         "location": "[resourceGroup().location]",
+         "properties": {
+           "subnets": [
+               {
+                   "name": "client",
+                   "properties": {
+                       "addressPrefix": "[variables( 'subnetSpaceClients' )]",
+                       "routeTable": {
+                         "id": "[resourceId( 'Microsoft.Network/routeTables', concat( parameters( 'prefix' ), '_to-sink-via-ngf' ))]"
+                       }
+                   }
+               },
+               {
+                    "name": "sink",
+                    "properties": {
+                        "addressPrefix": "[variables( 'subnetSpaceSink' )]",
+                        "routeTable": {
+                          "id": "[resourceId( 'Microsoft.Network/routeTables', concat( parameters( 'prefix' ), '_to-clients-via-ngf' ))]"
+                        }
+                    }
+               },
+               {
+                   "name": "fw",
+                   "properties": {
+                        "addressPrefix": "[variables( 'subnetSpaceFw' )]"
+                   }
+               }
+           ],
+             "addressSpace": {
+                 "addressPrefixes": [
+                   "[variables( 'subnetSpaceClients' )]",
+                   "[variables( 'subnetSpaceSink' )]",
+                   "[variables( 'subnetSpaceFw' )]"
+                 ]
+             }
+         }
+      },
+      {
+        "name": "perf_to-clients-via-ngf",
+        "type": "Microsoft.Network/routeTables",
+        "apiVersion": "2017-10-01",
+        "location": "[resourceGroup().location]",
+        "properties": {
+          "routes": [
+            {
+              "properties": {
+                  "addressPrefix": "[variables( 'subnetMapClients' )]",
+                  "nextHopType": "VirtualAppliance",
+                  "nextHopIpAddress": "[variables( 'dutIp' )]"
+              },
+              "name": "clientmap-redirect"
+            }
+          ]
+        }
+      },
+      {
+        "name": "perf_to-sink-via-ngf",
+        "type": "Microsoft.Network/routeTables",
+        "apiVersion": "2017-10-01",
+        "location": "[resourceGroup().location]",
+        "properties": {
+          "routes": [
+            {
+              "properties": {
+                  "addressPrefix": "[variables( 'subnetMapSink' )]",
+                  "nextHopType": "VirtualAppliance",
+                  "nextHopIpAddress": "[variables( 'dutIp' )]"
+              },
+              "name": "sinkmap-redirect"
+            }
+          ]
+        }
+      }
+
+      {
+        "name": "[concat( parameters( 'prefix' ), '-s1' )]",
+        "type": "Microsoft.Compute/virtualMachines",
+        "apiVersion": "2016-04-30-preview",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+          "[concat('Microsoft.Network/networkInterfaces/', parameters( 'prefix' ), '-s1', '-nic' )]"
+        ],
+        "properties": {
+          "osProfile": {
+            "computerName": "[concat( parameters( 'prefix' ), '-s1' )]",
+            "adminUsername": "[variables('adminUsername')]",
+            "linuxConfiguration": {
+              "disablePasswordAuthentication": "true",
+              "ssh": {
+                "publicKeys": [
+                  {
+                    "path": "[concat('/home/', variables('adminUsername'), '/.ssh/authorized_keys')]",
+                    "keyData": "[parameters('adminPublicKey')]"
+                  }
+                ]
+              }
+            }
+          },
+          "hardwareProfile": {
+            "vmSize": "[variables('vmSize')]"
+          },
+          "storageProfile": {
+            "imageReference": {
+              "publisher": "Canonical",
+              "offer": "UbuntuServer",
+              "sku": "16.04-LTS",
+              "version": "latest"
+            },
+            "osDisk": {
+              "createOption": "fromImage",
+              "managedDisk": {
+                "storageAccountType": "Premium_LRS"
+              }
+            },
+            "dataDisks": []
+          },
+          "networkProfile": {
+            "networkInterfaces": [
+              {
+                "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters( 'prefix' ), '-s1', '-nic' )]"
+              }
+            ]
+          }
+        }
+      },
+
+      {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "name": "[concat( parameters( 'prefix' ), '-s1/sinkinstall')]",
+        "apiVersion": "2015-05-01-preview",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+          "[concat('Microsoft.Compute/virtualMachines/', concat( parameters( 'prefix' ), '-s1' ))]"
+        ],
+        "properties": {
+          "publisher": "Microsoft.Azure.Extensions",
+          "type": "CustomScript",
+          "typeHandlerVersion": "2.0",
+          "autoUpgradeMinorVersion": true,
+          "settings": {
+            "fileUris": [
+              "https://raw.githubusercontent.com/bartekmo/ng-perf/sinkinstall.sh"
+            ],
+            "commandToExecute": "sh sinkinstall.sh"
+          }
+        }
+      },
+      {
+        "name": "[concat( parameters( 'prefix' ), '-s1', '-nic' )]",
+        "type": "Microsoft.Network/networkInterfaces",
+        "apiVersion": "2016-09-01",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [],
+        "properties": {
+          "ipConfigurations": [
+            {
+              "name": "ipconfig1",
+              "properties": {
+                "subnet": {
+                  "id": "[concat( resourceId( 'Microsoft.Network/virtualNetworks', concat( parameters( 'prefix' ), '-vnet' )), '/subnets/sink' )]"
+                },
+                "privateIPAllocationMethod": "Dynamic"
+              }
+            }
+          ]
+        }
+      }
+
+  ],
+  "outputs": {}
+}

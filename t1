@@ -1,0 +1,2 @@
+curl "bam-perf-c2:8000/?testcase=Direct_TCP100&time=20&testset=201701119990&dutsize=A1"
+curl "bam-perf-c1:8000/?testcase=Direct_TCP100&time=20&testset=201701119990&dutsize=A1"

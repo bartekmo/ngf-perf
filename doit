@@ -1,0 +1,6 @@
+#!/bin/bash
+
+for SIZE in `cat sizes`
+do
+	azure vm set -g bam-perf --vm-size=Standard_$SIZE -n bam-perf-dut && sleep 180 && ./perf.run
+done
