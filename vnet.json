@@ -26,6 +26,10 @@
          "apiVersion": "2017-10-01",
          "type": "Microsoft.Network/virtualNetworks",
          "location": "[resourceGroup().location]",
+         "dependsOn": [
+           "[resourceId( 'Microsoft.Network/routeTables', concat( parameters( 'prefix' ), '_to-clients-via-ngf' ) )]",
+           "[resourceId( 'Microsoft.Network/routeTables', concat( parameters( 'prefix' ), '_to-sink-via-ngf' ) )]"
+         ],
          "properties": {
            "subnets": [
                {
@@ -63,7 +67,7 @@
          }
       },
       {
-        "name": "perf_to-clients-via-ngf",
+        "name": "[concat( parameters( 'prefix' ), '_to-clients-via-ngf' )]",
         "type": "Microsoft.Network/routeTables",
         "apiVersion": "2017-10-01",
         "location": "[resourceGroup().location]",
@@ -81,7 +85,7 @@
         }
       },
       {
-        "name": "perf_to-sink-via-ngf",
+        "name": "[concat( parameters( 'prefix' ), '_to-sink-via-ngf' )]",
         "type": "Microsoft.Network/routeTables",
         "apiVersion": "2017-10-01",
         "location": "[resourceGroup().location]",
@@ -97,7 +101,7 @@
             }
           ]
         }
-      }
+      },
 
       {
         "name": "[concat( parameters( 'prefix' ), '-s1' )]",
@@ -117,7 +121,7 @@
                 "publicKeys": [
                   {
                     "path": "[concat('/home/', variables('adminUsername'), '/.ssh/authorized_keys')]",
-                    "keyData": "[parameters('adminPublicKey')]"
+                    "keyData": "[variables('adminPublicKey')]"
                   }
                 ]
               }
@@ -144,7 +148,7 @@
           "networkProfile": {
             "networkInterfaces": [
               {
-                "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters( 'prefix' ), '-s1', '-nic' )]"
+                "id": "[resourceId('Microsoft.Network/networkInterfaces', concat( parameters( 'prefix' ), '-s1', '-nic' ))]"
               }
             ]
           }
@@ -166,7 +170,7 @@
           "autoUpgradeMinorVersion": true,
           "settings": {
             "fileUris": [
-              "https://raw.githubusercontent.com/bartekmo/ng-perf/sinkinstall.sh"
+              "https://raw.githubusercontent.com/bartekmo/ngf-perf/master/sinkinstall.sh"
             ],
             "commandToExecute": "sh sinkinstall.sh"
           }
@@ -177,7 +181,9 @@
         "type": "Microsoft.Network/networkInterfaces",
         "apiVersion": "2016-09-01",
         "location": "[resourceGroup().location]",
-        "dependsOn": [],
+        "dependsOn": [
+          "[resourceId( 'Microsoft.Network/virtualNetworks', concat( parameters( 'prefix' ), '-vnet' ))]"
+        ],
         "properties": {
           "ipConfigurations": [
             {
