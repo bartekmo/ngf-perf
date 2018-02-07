@@ -25,6 +25,8 @@ var lastOct = myAddress.split( '.' )[3];
 var iperfBase = '/usr/bin/iperf3 -J -c ';
 
 var testCases = {
+	'10-fw': iperfBase + '10.5.10.'+lastOct + ' -P 10',
+	'11-udp-null-nohash': iperfBase + '10.5.11.' + ' -P 10',
 	'Direct_TCP1': iperfBase + '10.3.1.'+lastOct + ' -P 1',
 	'Direct_TCP100': iperfBase + '10.3.1.'+lastOct + ' -P 100',
 	'Direct_UDP': iperfBase + '10.3.1.'+lastOct + ' -u -b 5G',
@@ -64,7 +66,7 @@ var server = http.createServer( function( req, res ){
 	reqUrl = url.parse( req.url, true );
 
 	var iperfCmd = testCases[ reqUrl.query.testcase ];
-	
+
 	if ( reqUrl.query.time ) {
 		iperfCmd = iperfCmd+ ' -t '+reqUrl.query.time+ ' -i '+reqUrl.query.time;
 	} else {
@@ -120,12 +122,11 @@ var server = http.createServer( function( req, res ){
 			console.log('error closing: '+err );
 		});*/
 	});
-	
-		
+
+
 
 	res.writeHead(200);
 	res.end( 'Yo!' );
 });
 
 server.listen( 8000 );
-
