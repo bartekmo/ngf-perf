@@ -5,7 +5,8 @@ var os = require( 'os' );
 var process = require( 'process' );
 var mysql = require( 'mysql' );
 
-var db = mysql.createConnection({
+var db = mysql.createPool({
+	connectionLimit: 4,
 	host	: 'eu-cdbr-azure-west-d.cloudapp.net',
 	user	: 'b4f65ef9810291',
 	password: 'da5872fc',
@@ -24,13 +25,13 @@ var lastOct = myAddress.split( '.' )[3];
 var iperfBase = '/usr/bin/iperf3 -J -P 10 -c ';
 
 var testCases = {
-	'0-directcheck': iperfBase + '10.3.1.'+lastOct,
-	'1-fw': iperfBase + '10.5.1.'+lastOct,
-	'10-udp-null-nohash': iperfBase + '10.5.10.'+lastOct,
-	'11-udp-aes-nohash': iperfBase + '10.5.11.'+lastOct,
-	'12-udp-aes-sha1': iperfBase + '10.5.12.'+lastOct,
-	'13-udp-aes256-gcm': iperfBase + '10.5.13.'+lastOct,
-	'14-tcp-aes-sha1': iperfBase + '10.5.14.'+lastOct
+	"0-directcheck": iperfBase + '10.3.1.'+lastOct,
+	"1-fw": iperfBase + '10.5.1.'+lastOct,
+	"10-udp-null-nohash": iperfBase + '10.5.10.'+lastOct,
+	"11-udp-aes-nohash": iperfBase + '10.5.11.'+lastOct,
+	"12-udp-aes-sha1": iperfBase + '10.5.12.'+lastOct,
+	"13-udp-aes256-gcm": iperfBase + '10.5.13.'+lastOct,
+	"14-tcp-aes-sha1": iperfBase + '10.5.14.'+lastOct
 }
 
 var lastSpeed = 0;
@@ -84,6 +85,8 @@ var server = http.createServer( function( req, res ){
 '" +reqUrl.query.dutsize+ "' \
 )";
 		//console.log( sqlInsert );
+		/*
+		// replacing with mysql pool
 		db.connect( function( err ) {
 			if ( err ) {
 				console.log( 'error connecting: '+err );
@@ -97,6 +100,17 @@ var server = http.createServer( function( req, res ){
 		db.end( function( err ) {
 			console.log('error closing: '+err );
 		});
+		*/
+
+		db.getConnection( function(err,connection) {
+			connection.query( sqlInsert, function(err,rows,fields){
+				if (err ) {
+					console.log( err );
+				} else {
+					connection.release();
+				}
+			)
+		})
 	});
 
 
