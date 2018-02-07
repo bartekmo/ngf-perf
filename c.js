@@ -21,46 +21,20 @@ Object.keys( eth0 ).forEach( function ( indx ){
 });
 var lastOct = myAddress.split( '.' )[3];
 
-
 var iperfBase = '/usr/bin/iperf3 -J -c ';
 
 var testCases = {
-	'10-fw': iperfBase + '10.5.10.'+lastOct + ' -P 10',
-	'11-udp-null-nohash': iperfBase + '10.5.11.' + ' -P 10',
-	'Direct_TCP1': iperfBase + '10.3.1.'+lastOct + ' -P 1',
-	'Direct_TCP100': iperfBase + '10.3.1.'+lastOct + ' -P 100',
-	'Direct_UDP': iperfBase + '10.3.1.'+lastOct + ' -u -b 5G',
-	'DirectRev_TCP1': iperfBase + '10.3.1.'+lastOct + ' -P 1 -R',
-        'DirectRev_TCP100': iperfBase + '10.3.1.'+lastOct + ' -P 100 -R',
-        'DirectRev_UDP': iperfBase + '10.3.1.'+lastOct + ' -u -b 5G -R',
-	'FW_TCP1': iperfBase + '10.5.1.'+lastOct + ' -P 1',
-	'FW_TCP100': iperfBase + '10.5.1.'+lastOct + ' -P 100',
-	'FW_UDP': iperfBase + '10.5.1.'+lastOct + ' -u -b 5G',
-	'FWRev_TCP1': iperfBase + '10.5.1.'+lastOct + ' -P 1 -R',
-        'FWRev_TCP100': iperfBase + '10.5.1.'+lastOct + ' -P 100 -R',
-        'FWRev_UDP': iperfBase + '10.5.1.'+lastOct + ' -u -b 5G -R',
-	'VPN_TCP_AES128SHA_TCP1': iperfBase + '10.5.1.1'+lastOct +' -P 1',
-	'VPN_TCP_AES128SHA_TCP100': iperfBase + '10.5.1.1'+lastOct +' -P 100',
-	'VPN_udp_AES128SHA_TCP1': iperfBase + '10.5.1.2'+lastOct +' -P 1',
-	'VPN_udp_AES128SHA_TCP100': iperfBase + '10.5.1.2'+lastOct +' -P 100',
-	'VPN_hybrid_AES256GCM_TCP1': iperfBase + '10.5.1.3'+lastOct +' -P 1',
-        'VPN_hybrid_AES256GCM_TCP100': iperfBase + '10.5.1.3'+lastOct +' -P 100',
-	'VPN_hybrid_AES128SHA256_TCP1': iperfBase + '10.5.1.6'+lastOct +' -P 1',
-        'VPN_hybrid_AES128SHA256_TCP100': iperfBase + '10.5.1.6'+lastOct +' -P 100',
-	'VPN_hybrid_AES128SHA512_TCP1': iperfBase + '10.5.1.7'+lastOct +' -P 1',
-        'VPN_hybrid_AES128SHA512_TCP100': iperfBase + '10.5.1.7'+lastOct +' -P 100',
-	'VPN_TCP_AES256GCM_TCP1': iperfBase + '10.5.1.1'+lastOct +' -P 1',
-        'VPN_TCP_AES256GCM_TCP100': iperfBase + '10.5.1.1'+lastOct +' -P 100',
-	'VPN_hybrid_AES128nohash_TCP1': iperfBase + '10.5.1.8'+lastOct +' -P 1',
-        'VPN_hybrid_AES128nohash_TCP100': iperfBase + '10.5.1.8'+lastOct +' -P 100',
-	'VPN_hybrid_NullNohash_TCP1': iperfBase + '10.5.1.9'+lastOct +' -P 1',
-        'VPN_hybrid_NullNohash_TCP100': iperfBase + '10.5.1.9'+lastOct +' -P 100',
-        'VPN_hybrid_AES128GCM_TCP1': iperfBase + '10.5.1.4'+lastOct +' -P 1',
-        'VPN_hybrid_AES128GCM_TCP100': iperfBase + '10.5.1.4'+lastOct +' -P 100'
+	'0-directcheck': iperfBase + '10.3.1.'+lastOct + ' -P 10',
+	'1-fw': iperfBase + '10.5.1.'+lastOct + ' -P 10',
+	'10-udp-null-nohash': iperfBase + '10.5.10.'+lastOct + ' -P 10',
+	'11-udp-aes-nohash': iperfBase + '10.5.11.'+lastOct + ' -P 10',
+	'12-udp-aes-sha1': iperfBase + '10.5.12.'+lastOct + ' -P 10',
+	'13-udp-aes256-gcm': iperfBase + '10.5.13.'+lastOct + ' -P 10',
+	'14-tcp-aes-sha1': iperfBase + '10.5.14.'+lastOct + ' -P 10'
 }
 
 var lastSpeed = 0;
-db.connect();
+//db.connect();
 
 var server = http.createServer( function( req, res ){
 	reqUrl = url.parse( req.url, true );
@@ -108,19 +82,19 @@ var server = http.createServer( function( req, res ){
 '" +reqUrl.query.dutsize+ "' \
 )";
 		//console.log( sqlInsert );
-		/*db.connect( function( err ) {
+		db.connect( function( err ) {
 			if ( err ) {
 				console.log( 'error connecting: '+err );
 			}
-		});*/
+		});
 		db.query( sqlInsert, function(err,rows,fields){
 			if (err ) {
 				console.log( err );
 			}
 		});
-		/*db.end( function( err ) {
+		db.end( function( err ) {
 			console.log('error closing: '+err );
-		});*/
+		});
 	});
 
 
