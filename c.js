@@ -21,16 +21,16 @@ Object.keys( eth0 ).forEach( function ( indx ){
 });
 var lastOct = myAddress.split( '.' )[3];
 
-var iperfBase = '/usr/bin/iperf3 -J -c ';
+var iperfBase = '/usr/bin/iperf3 -J -P 10 -c ';
 
 var testCases = {
-	'0-directcheck': iperfBase + '10.3.1.'+lastOct + ' -P 10',
-	'1-fw': iperfBase + '10.5.1.'+lastOct + ' -P 10',
-	'10-udp-null-nohash': iperfBase + '10.5.10.'+lastOct + ' -P 10',
-	'11-udp-aes-nohash': iperfBase + '10.5.11.'+lastOct + ' -P 10',
-	'12-udp-aes-sha1': iperfBase + '10.5.12.'+lastOct + ' -P 10',
-	'13-udp-aes256-gcm': iperfBase + '10.5.13.'+lastOct + ' -P 10',
-	'14-tcp-aes-sha1': iperfBase + '10.5.14.'+lastOct + ' -P 10'
+	'0-directcheck': iperfBase + '10.3.1.'+lastOct,
+	'1-fw': iperfBase + '10.5.1.'+lastOct,
+	'10-udp-null-nohash': iperfBase + '10.5.10.'+lastOct,
+	'11-udp-aes-nohash': iperfBase + '10.5.11.'+lastOct,
+	'12-udp-aes-sha1': iperfBase + '10.5.12.'+lastOct,
+	'13-udp-aes256-gcm': iperfBase + '10.5.13.'+lastOct,
+	'14-tcp-aes-sha1': iperfBase + '10.5.14.'+lastOct
 }
 
 var lastSpeed = 0;
@@ -72,6 +72,8 @@ var server = http.createServer( function( req, res ){
                                 console.log( iperfCmd );
                                 console.log( iperfRes.end );
                                 console.log( stdout );
+																res.writeHead( 404 );
+																res.end( "ERROR: test \""+reqUrl.query.testcase+"\" not found" )
 		}
 
 		sqlInsert = "INSERT INTO perf (testset, testhost, testcase, throughput, dutsize) VALUES ( \
