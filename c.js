@@ -85,22 +85,6 @@ var server = http.createServer( function( req, res ){
 '" +reqUrl.query.dutsize+ "' \
 )";
 		//console.log( sqlInsert );
-		/*
-		// replacing with mysql pool
-		db.connect( function( err ) {
-			if ( err ) {
-				console.log( 'error connecting: '+err );
-			}
-		});
-		db.query( sqlInsert, function(err,rows,fields){
-			if (err ) {
-				console.log( err );
-			}
-		});
-		db.end( function( err ) {
-			console.log('error closing: '+err );
-		});
-		*/
 
 		db.getConnection( function(err,connection) {
 			connection.query( sqlInsert, function(err,rows,fields){
