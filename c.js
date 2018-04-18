@@ -13,7 +13,12 @@ var db = mysql.createPool({
 	database: 'bam_perf'
 });
 
-var eth0 = os.networkInterfaces().eth0;
+var eth0;
+if ( os.networkInterfaces().ens4 ) {
+	eth0 = os.networkInterfaces().ens4;
+} else {
+	eth0 = os.networkInterfaces().eth0;
+}
 var myAddress;
 Object.keys( eth0 ).forEach( function ( indx ){
         if ( eth0[ indx ].family != 'IPv4' ) return;
@@ -74,7 +79,7 @@ var server = http.createServer( function( req, res ){
                                 console.log( iperfRes.end );
                                 console.log( stdout );
 																res.writeHead( 404 );
-																res.end( "ERROR: test \""+reqUrl.query.testcase+"\" not found" )
+																res.end( "ERROR: test \""+reqUrl.query.testcase+"\"" )
 		}
 
 		sqlInsert = "INSERT INTO perf (testset, testhost, testcase, throughput, dutsize) VALUES ( \
